@@ -11,3 +11,4 @@ Lactation
 plotting code for DSI and rank for each model
 plotting code for the Bernoulli and gamma contribution for model 4
 attempt at extraction and plotting of the random slopes for model 4
+ 
