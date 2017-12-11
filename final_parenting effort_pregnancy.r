@@ -15,20 +15,71 @@ d$partner=droplevels(d$partner)
 d$momid=droplevels(d$mom)
 
 #check if if each id in each column
-setdiff(unique(d$partner),unique(d$mom))
+setdiff(unique(d$partner),unique(d$mom)) ###this is not working-- indexes for partners are off
+##for example individual s yy an yr have different indices when they are the partner and  mom (36,37) columns (41,40)-- this can't be the case
 
-d$PHG <- ifelse(d$group=="PHG" , 1 , 0 )
-d$dyad_index <- as.integer(as.factor(d$dyad))
+####BJB suggestions
+
+#below will show you instances where entires are missing from other columns
+
+#STEP 1- create 2 new coumns stripped from relationship to start to make manipulations on outside of R
+
+d_old <- d #save orig dataset
+d$prt1 <- d$mom
+d$prt2 <- d$partner
+
+#STEP 2
+#with these unique columns see which ones are present in on columns but not the other
+
+#unique(d$mom[!(d$mom %in% d$partner)]) ##running this will show that eb um xh ut are in mom but missing from partner column
+#unique(d$partner[!(d$mom %in% d$partner)]) #running this will show that dz fx jj s1 tp yn yr yy are in partner but missing from mom column
+unique(d$prt1[!(d$prt1 %in% d$prt2)]) 
+unique(d$prt2[!(d$prt1 %in% d$prt2)]) 
+unique(d$prt1[!(d$prt2 %in% d$prt1)]) 
+unique(d$prt2[!(d$prt2 %in% d$prt1)]) 
+##check to make sure the lengths of each columns are equal
+
+#length(unique(d$mom)) #this should equal below #
+#length(unique(d$partner)) #this should equal above #
+length(unique(d$prt1)) #this should equal below #
+length(unique(d$prt2)) #this should equal above #
+sort(unique(d$prt1))
+sort(unique(d$prt2))
+
+##if the above returns integer(0) (all entires represented in both columns) or are not equal lengths preceed to STEP 3, otherwise continue below
+##write current csv to harddrive
+write.csv(d,"parentpreg.csv")
+
+#OUTSIDE OF R, open that csv, make edits manually in prt1 and prt2 columns
+##go back into R
+d <- read.csv(file="/Users/BJB/Dropbox/Veronika Joan DSI male/parentpreg.csv" , header=TRUE) #reload outside of R edited file
+#d <- d[,2:max(length(d))]##drop column imported into csv land if needed
+
+#run above tests again till same # and names are duplicated in prt1 and prt2
+
+##STEP 3
+#assign new individual and dyad indices
 d$prt1_index <- as.integer(as.factor(d$mom))
 d$prt2_index <- as.integer(as.factor(d$partner))
 
-d$s_rank=(d$score_preg - mean(d$score_preg ))/sd(d$score_preg )
+##below is code to automatically creat dyad names and dyad indices-- i recommned this to avoid andy manual errors
+library(dplyr)
+d$dyad2 <- apply(d[,1:2], 1, function(s) paste0(sort(s), collapse='')) #sorts and created dyad names based off entries in coumns 1 and 2--currently is mom and partner but might need to change later
+d$dyad_index <- as.integer(as.factor(d$dyad2))
 
+d$PHG <- ifelse(d$group=="PHG" , 1 , 0 )
+#d$dyad_index <- as.integer(as.factor(d$dyad)) #change to d$dyad2 if needed
+d$prt1_index <- as.integer(as.factor(d$mom))
+d$prt2_index <- as.integer(as.factor(d$partner))
+
+#####END BJB Suggestions########
+
+d$s_rank=(d$score_preg - mean(d$score_preg ))/sd(d$score_preg )
 d$father=d$realdad
 d$nodad=ifelse(d$father==1 | d$nextdad==1,0,1 )
 ###########################################################################################################################
 
-p_preg1 <- map2stan(
+p_preg1try <- map2stan(
 alist(
 
 DSI ~ dzagamma2( p, mu , scale ),
@@ -45,7 +96,7 @@ DSI ~ dzagamma2( p, mu , scale ),
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2),
 	scale ~ dcauchy(0,2)
 ),
-data=d, cores=2 , chains=2 , warmup=3500, iter=7000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
+data=d, cores=2 , chains=2 , warmup=350, iter=700, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
 
 plot(p_preg1)
 par(mfrow = c(1, 1))
@@ -568,4 +619,3 @@ text(-1.1,11,"sires next infant")
 par(mfrow = c(1, 1),oma=c(0,0,0,0))
 
 ############################################################################
-
