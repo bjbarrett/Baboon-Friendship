@@ -3,6 +3,11 @@ library(Cairo)
 library(dplyr)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
+
+#problems== graphing code off for plac1-- corrected
+#plac2 and plac3 did not have am specified-- this may explain the WAIC issues
+#you were missing the varying effects for next dad and next dad X rank interaction- i corrected plac4 to be correct
+
 ########################################################################
 setwd("Z:/Vroni/Olive Baboons/analyses/DSI/")
 d=read.table(file="input_parenting effort_lac_red.csv",header=T,sep=",")
@@ -44,7 +49,7 @@ DSI ~ dzagamma2( p, mu , scale ),
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2),
 	scale ~ dcauchy(0,2)
 ),
-data=d, cores=2 , chains=2 , warmup=2000, iter=4000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
+data=d, cores=2 , chains=2 , warmup=3000, iter=6000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
 
 plot(p_lac1)
 par(mfrow = c(1, 1))
@@ -53,7 +58,7 @@ output_lac1=precis(p_lac1, depth=2 , digits=2)@output
 plot(precis(p_lac1, pars=c("bp_rank","bm_rank","bp_pat","bm_pat","bp_next","bm_next","bp_group","bm_group"),depth=2))
 
 #Plot prep paternity
-a_prt1_z <- matrix(0,1000,length(unique(d$prt1_index)))
+a_prt1_z <- matrix(0,1000,length(unique(d$prt1_index))) #in this workspace these are differnt from prt2
 a_dyad_z <- matrix(0,1000,length(unique(d$dyad_index)))
 
 d.pred_father1 <- list(
@@ -81,32 +86,34 @@ d.pred_nextdad1 <- list(
 	prt2_index=1,
 	dyad_index=1,
 	father=0,
-		nextdad=1,
+	nextdad=1,
 	s_rank=mean(d$s_rank),
 	PHG=mean(d$PHG)	
 )
 
-link_father <- link(p_lac1, n=1000 , data=d.pred_father,replace=
+link_father <- link(p_lac1, n=1000 , data=d.pred_father1,replace=
 	list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z), WAIC=TRUE)
 pred_father <- (1-link_father$p)*link_father$mu
 median(pred_father)
 HPDI(pred_father)
 
-link_nodad <- link(p_lac1, n=1000 , data=d.pred_nodad, replace=
+link_nodad <- link(p_lac1, n=1000 , data=d.pred_nodad1, replace=
 	list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z), WAIC=TRUE)
 pred_nodad <- (1-link_nodad$p)*link_nodad$mu
 median(pred_nodad)
 HPDI(pred_nodad)
 
-link_nextdad <- link(p_lac1, n=1000 , data=d.pred_nextdad, WAIC=TRUE,replace=
+link_nextdad <- link(p_lac1, n=1000 , data=d.pred_nextdad1, WAIC=TRUE,replace=
 	list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z), WAIC=TRUE)
 pred_nextdad <- (1-link_nextdad$p)*link_nextdad$mu
 median(pred_nextdad)
 HPDI(pred_nextdad)
 
+###wrong datalists called
+
 #Plot
 par(mfrow=c(1,1) , mar=c(0,0,0,0) , oma=c(0,0,0,0))
-dens(pred_nodad, xlim=c(0,10.5) , xlab=NA , ylab=NA , col="white"  , xaxt='n' ,  yaxt='n', zero.line = FALSE,ylim=c(-0.12,3.6))
+dens(pred_nodad, xlim=c(0,10.5) , xlab=NA , ylab=NA , col="black"  , xaxt='n' ,  yaxt='n', zero.line = FALSE,ylim=c(-0.12,3.6))
 axis(1, tck=-0.015,cex=1,labels=NA,at=seq(0,10,by=1))
 axis(1, cex.axis=0.8,at= c(0,10),labels=c(0,10),line=0.1,col=NA)
 ll <- d$DSI[d$father==1]
@@ -147,7 +154,7 @@ d.pred_rank1 <- list(
 	PHG=rep(mean(d$PHG),length(rank.seq))	
 )
 
-link_rank <- link(p_lac1, n=1000 , data=d.pred_rank, WAIC=TRUE,replace=
+link_rank <- link(p_lac1, n=1000 , data=d.pred_rank1, WAIC=TRUE,replace=
 	list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z), WAIC=TRUE)
 pred_rank <- (1-link_rank$p)*link_rank$mu
 pred.median=apply(pred_rank , 2 , median )
@@ -162,6 +169,7 @@ mtext("rank", side=1, line=1.5)
 mtext("DSI", side=2, line=1.5)
 
 #############################P_LAC2################################################
+###there are errors in code for plac2, commenting out lines with errors and correcting
 p_lac2 <- map2stan(
 alist(
 
@@ -173,7 +181,8 @@ DSI ~ dzagamma2( p, mu , scale ),
 				BPf ~ bpf_id[prt1_index] + bpf_id[prt2_index],
 				BPr ~ bpr_id[prt1_index] + bpr_id[prt2_index],
 								
-  log(mu)  ~	ap + bm_rank*s_rank + bm_pat*father + bm_next*nextdad + bm_group*PHG +
+  #log(mu)  ~	ap + bm_rank*s_rank + bm_pat*father + bm_next*nextdad + bm_group*PHG +
+  log(mu)  ~	am + bm_rank*s_rank + bm_pat*father + bm_next*nextdad + bm_group*PHG +
 				AM + BMr*s_rank + BMf*father + BMf*nextdad,
 				
                 AM ~ am_id[prt1_index] + am_id[prt2_index] + am_dyad[dyad_index],
@@ -187,7 +196,7 @@ DSI ~ dzagamma2( p, mu , scale ),
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2),
 	scale ~ dcauchy(0,2)
 ),
-data=d, cores=2 , chains=2 , warmup=5000, iter=10000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99,max_treedepth=15), WAIC=TRUE)
+data=d, cores=2 , chains=2 , warmup=3000, iter=6000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99,max_treedepth=15), WAIC=TRUE)
 
 plot(p_lac2)
 par(mfrow = c(1, 1))
@@ -259,6 +268,7 @@ shade(pred.HPDI,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=1.5)
 mtext("DSI", side=2, line=1.5)
 ########
+###BJB correct below#####
 # Is this how one plot slope effects???
 dyadlist <- (unique(d$dyad_index))
 idlist <- (unique(d$prt1_index))
@@ -295,7 +305,8 @@ DSI ~ dzagamma2( p, mu , scale ),
                 AP ~ ap_id[prt1_index] + ap_id[prt2_index] + ap_dyad[dyad_index],
 				
 								
-  log(mu)  ~	ap + bm_rank*s_rank + bm_pat*father + bm_next*nextdad + bm_group*PHG +
+  #log(mu)  ~	ap + bm_rank*s_rank + bm_pat*father + bm_next*nextdad + bm_group*PHG +
+   log(mu)  ~	am + bm_rank*s_rank + bm_pat*father + bm_next*nextdad + bm_group*PHG +
 				bm_rank_pat*s_rank*father + bm_rank_next*s_rank*nextdad + AM,
 				
                 AM ~ am_id[prt1_index] + am_id[prt2_index] + am_dyad[dyad_index],
@@ -308,7 +319,7 @@ DSI ~ dzagamma2( p, mu , scale ),
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2),
 	scale ~ dcauchy(0,2)
 ),
-data=d, cores=2 , chains=2 , warmup=3500, iter=7000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
+data=d, cores=2 , chains=2 , warmup=3000, iter=6000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
 
 plot(p_lac3)
 par(mfrow = c(1, 1))
@@ -453,29 +464,36 @@ alist(
 DSI ~ dzagamma2( p, mu , scale ),
 
     logit(p) ~ 	ap + bp_rank_pat*s_rank*father + bp_rank_next*s_rank*nextdad  + bp_pat*father + bp_next*nextdad + bp_rank*s_rank + bp_group*PHG + 
-				AP + (BPf + BPfr*s_rank)*father + (BPf + BPfr*s_rank)*nextdad + BPr*s_rank,									
-	
+				#AP + (BPf + BPfr*s_rank)*father + (BPf + BPfr*s_rank)*nextdad + BPr*s_rank,									
+				AP + (BPf + BPfr*s_rank)*father + (BPn + BPnr*s_rank)*nextdad + BPr*s_rank,									
+
 				AP ~ ap_id[prt1_index] + ap_id[prt2_index] + ap_dyad[dyad_index], 
 				BPf ~ bpf_id[prt1_index] + bpf_id[prt2_index],
-				BPfr ~ bpfr_id[prt1_index] + bpfr_id[prt2_index],		
 				BPr ~ bpr_id[prt1_index] + bpr_id[prt2_index],
-				
+				BPn ~ bpn_id[prt1_index] + bpn_id[prt2_index],
+				BPfr ~ bpfr_id[prt1_index] + bpfr_id[prt2_index],
+				BPnr ~ bpnr_id[prt1_index] + bpnr_id[prt2_index],
+
     log(mu) ~ 	am + bm_rank_pat*s_rank*father + bm_rank_next*s_rank*nextdad + bm_pat*father + bm_next*nextdad + bm_rank*s_rank + bm_group*PHG +   
-				AM + (BMf + BMfr*s_rank)*father + (BMf + BMfr*s_rank)*nextdad + BMr*s_rank,										 
-	
+				#AM + (BMf + BMfr*s_rank)*father + (BMf + BMfr*s_rank)*nextdad + BMr*s_rank,										 
+				AM + (BMf + BMfr*s_rank)*father + (BMn + BMnr*s_rank)*nextdad + BMr*s_rank,										 
+
 				AM ~ am_id[prt1_index] + am_id[prt2_index] + am_dyad[dyad_index], 
 				BMf ~ bmf_id[prt1_index] + bmf_id[prt2_index]  ,
-				BMfr ~ bmfr_id[prt1_index] + bmfr_id[prt2_index]  ,		
 				BMr ~ bmr_id[prt1_index] + bmr_id[prt2_index] ,
+				BMn ~ bmn_id[prt1_index] + bmn_id[prt2_index],
+				BMfr ~ bmfr_id[prt1_index] + bmfr_id[prt2_index]  ,		
+				BMnr ~ bmnr_id[prt1_index] + bmnr_id[prt2_index],		
+
   
     c(ap,am,bp_rank_pat,bm_rank_pat,bp_rank_next,bm_rank_next,bp_pat,bm_pat,bp_next,bm_next,bp_rank,bm_rank,bp_group,bm_group) ~ dnorm(0,2),
-	c(ap_id,am_id,bpf_id,bmf_id,bpfr_id,bmfr_id,bpr_id,bmr_id)[prt1_index] ~ dmvnormNC( sigma_id , Rho_id ),
+	c(ap_id,am_id,bpf_id,bmf_id,bpfr_id,bmfr_id,bpr_id,bmr_id,bpnr_id,bmnr_id,bpn_id,bmn_id)[prt1_index] ~ dmvnormNC( sigma_id , Rho_id ),
 	c(ap_dyad,am_dyad)[dyad_index] ~ dmvnormNC( sigma_dyad , Rho_dyad ),
 	c(Rho_id,Rho_dyad) ~ dlkjcorr(3),	
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2),
 	scale ~ dcauchy(0,2)
 	),
-data=d, cores=2 , chains=2, warmup=5000, iter=10000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99,max_treedepth = 15), WAIC=TRUE)
+data=d, cores=2 , chains=2, warmup=3000, iter=6000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99,max_treedepth = 15), WAIC=TRUE)
 
 output_lac4=precis(p_lac4, depth=2 , digits=2)@output
 plot(precis(p_lac4, pars=c("ap","am","bp_rank","bm_rank","bp_pat","bm_pat","bp_next","bm_next","bp_group","bm_group","bp_rank_pat","bm_rank_pat","bp_rank_next","bm_rank_next"),depth=2))

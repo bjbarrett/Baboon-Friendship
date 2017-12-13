@@ -177,7 +177,7 @@ rDSI ~ dzagamma2( p, mu , scale ),
 				BPf ~ bpf_id[prt1_index] + bpf_id[prt2_index],
 				BPr ~ bpr_id[prt1_index] + bpr_id[prt2_index],
 								
-  log(mu)  ~	ap  + bm_pat*father + bm_next*nextdad + bm_group*PHG + bm_rank*s_rank +
+  log(mu)  ~	am  + bm_pat*father + bm_next*nextdad + bm_group*PHG + bm_rank*s_rank +
 				AM + BMf*father + BMf*nextdad + BMr*s_rank,
 				
                 AM ~ am_id[prt1_index] + am_id[prt2_index] + am_dyad[dyad_index],
@@ -319,7 +319,7 @@ rDSI ~ dzagamma2( p, mu , scale ),
                 AP ~ ap_id[prt1_index] + ap_id[prt2_index] + ap_dyad[dyad_index],
 				
 								
-  log(mu)  ~	ap + bm_rank*s_rank + bm_pat*father + bm_next*nextdad + bm_group*PHG +
+  log(mu)  ~	am + bm_rank*s_rank + bm_pat*father + bm_next*nextdad + bm_group*PHG +
 				bm_rank_pat*s_rank*father + bm_rank_next*s_rank*nextdad + AM,
 				
                 AM ~ am_id[prt1_index] + am_id[prt2_index] + am_dyad[dyad_index],
@@ -509,24 +509,31 @@ alist(
 
 rDSI ~ dzagamma2( p, mu , scale ),
 
-    logit(p) ~ 	ap + bp_rank_pat*s_rank*father + bp_rank_next*s_rank*nextdad + bp_pat*father + bp_next*nextdad + bp_rank*s_rank + bp_group*PHG + 
-				AP + (BPf + BPfr*s_rank)*father + (BPf + BPfr*s_rank)*nextdad + BPr*s_rank,									
-	
+    logit(p) ~ 	ap + bp_rank_pat*s_rank*father + bp_rank_next*s_rank*nextdad  + bp_pat*father + bp_next*nextdad + bp_rank*s_rank + bp_group*PHG + 
+				#AP + (BPf + BPfr*s_rank)*father + (BPf + BPfr*s_rank)*nextdad + BPr*s_rank,									
+				AP + (BPf + BPfr*s_rank)*father + (BPn + BPnr*s_rank)*nextdad + BPr*s_rank,									
+
 				AP ~ ap_id[prt1_index] + ap_id[prt2_index] + ap_dyad[dyad_index], 
 				BPf ~ bpf_id[prt1_index] + bpf_id[prt2_index],
-				BPfr ~ bpfr_id[prt1_index] + bpfr_id[prt2_index],		
 				BPr ~ bpr_id[prt1_index] + bpr_id[prt2_index],
-				
+				BPn ~ bpn_id[prt1_index] + bpn_id[prt2_index],
+				BPfr ~ bpfr_id[prt1_index] + bpfr_id[prt2_index],
+				BPnr ~ bpnr_id[prt1_index] + bpnr_id[prt2_index],
+
     log(mu) ~ 	am + bm_rank_pat*s_rank*father + bm_rank_next*s_rank*nextdad + bm_pat*father + bm_next*nextdad + bm_rank*s_rank + bm_group*PHG +   
-				AM + (BMf + BMfr*s_rank)*father + (BMf + BMfr*s_rank)*nextdad + BMr*s_rank,										 
-	
+				#AM + (BMf + BMfr*s_rank)*father + (BMf + BMfr*s_rank)*nextdad + BMr*s_rank,										 
+				AM + (BMf + BMfr*s_rank)*father + (BMn + BMnr*s_rank)*nextdad + BMr*s_rank,										 
+
 				AM ~ am_id[prt1_index] + am_id[prt2_index] + am_dyad[dyad_index], 
 				BMf ~ bmf_id[prt1_index] + bmf_id[prt2_index]  ,
-				BMfr ~ bmfr_id[prt1_index] + bmfr_id[prt2_index]  ,		
 				BMr ~ bmr_id[prt1_index] + bmr_id[prt2_index] ,
+				BMn ~ bmn_id[prt1_index] + bmn_id[prt2_index],
+				BMfr ~ bmfr_id[prt1_index] + bmfr_id[prt2_index]  ,		
+				BMnr ~ bmnr_id[prt1_index] + bmnr_id[prt2_index],		
+
   
     c(ap,am,bp_rank_pat,bm_rank_pat,bp_rank_next,bm_rank_next,bp_pat,bm_pat,bp_next,bm_next,bp_rank,bm_rank,bp_group,bm_group) ~ dnorm(0,2),
-	c(ap_id,am_id,bpf_id,bmf_id,bpfr_id,bmfr_id,bpr_id,bmr_id)[prt1_index] ~ dmvnormNC( sigma_id , Rho_id ),
+	c(ap_id,am_id,bpf_id,bmf_id,bpfr_id,bmfr_id,bpr_id,bmr_id,bpnr_id,bmnr_id,bpn_id,bmn_id)[prt1_index] ~ dmvnormNC( sigma_id , Rho_id ),
 	c(ap_dyad,am_dyad)[dyad_index] ~ dmvnormNC( sigma_dyad , Rho_dyad ),
 	c(Rho_id,Rho_dyad) ~ dlkjcorr(3),	
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2),
