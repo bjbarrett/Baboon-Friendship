@@ -8,27 +8,37 @@ options(mc.cores = parallel::detectCores())
 #plac2 and plac3 did not have am specified-- this may explain the WAIC issues
 #you were missing the varying effects for next dad and next dad X rank interaction- i corrected plac4 to be correct
 
-########################################################################
+######Vroni Wrokspace##################################################################
 setwd("Z:/Vroni/Olive Baboons/analyses/DSI/")
 d=read.table(file="input_parenting effort_lac_red.csv",header=T,sep=",")
+#################BJB workspace############
+setwd("/Users/BJB/Dropbox/Veronika Joan DSI male")
+d=read.table(file="input_parenting effort_lac_red2.csv",header=T,sep=",") #reset database
 
 nrow(d[d$realdad==1 & d$nextdad==1,]) #how many excluded because current and next dad
 d=d[!(d$realdad==1 & d$nextdad==1),]		#exclude current and next dads
 
-d$dyad=droplevels(d$dyad)
-d$partner=droplevels(d$partner)
-d$momid=droplevels(d$momid)
+
+##below is code to automatically creat dyad names and dyad indices-- i recommned this to avoid andy manual errors
+library(dplyr)
+d$dyad <- apply(d[,1:2], 1, function(s) paste0(sort(s), collapse='')) #sorts and created dyad names based off entries in coumns 1 and 2--currently is mom and partner but might need to change later
+d$dyad_index <- as.integer(as.factor(d$dyad2))
+
+
+#d$dyad=droplevels(d$dyad)
+#d$partner=droplevels(d$partner)
+#d$momid=droplevels(d$momid)
 
 #check if if each id in each column
 setdiff(unique(d$partner),unique(d$momid))
 
-d$PHG <- ifelse(d$natalto=="PHG" , 1 , 0 )
-d$dyad_index <- as.integer(as.factor(d$dyad))
-d$prt1_index <- as.integer(as.factor(d$momid))
-d$prt2_index <- as.integer(as.factor(d$partner))
+#d$PHG <- ifelse(d$natalto=="PHG" , 1 , 0 )
+#d$dyad_index <- as.integer(as.factor(d$dyad))
+#d$prt1_index <- as.integer(as.factor(d$momid))
+#d$prt2_index <- as.integer(as.factor(d$partner))
+#create new columns
 
 d$s_rank=(d$score_lac - mean(d$score_lac))/sd(d$score_lac)
-
 d$father=d$realdad
 d$nodad=ifelse(d$father==1 | d$nextdad==1,0,1 )
 #############################p_lac1################################################
@@ -49,7 +59,7 @@ DSI ~ dzagamma2( p, mu , scale ),
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2),
 	scale ~ dcauchy(0,2)
 ),
-data=d, cores=2 , chains=2 , warmup=3000, iter=6000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
+data=d, cores=2 , chains=2 , warmup=2000, iter=4000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
 
 plot(p_lac1)
 par(mfrow = c(1, 1))
@@ -175,28 +185,32 @@ alist(
 
 DSI ~ dzagamma2( p, mu , scale ),
   logit(p) ~ 	ap + bp_rank*s_rank + bp_pat*father + bp_next*nextdad + bp_group*PHG +
-				AP + BPr*s_rank + BPf*father + BPf*nextdad,
-				
+				#AP + BPr*s_rank + BPf*father + BPf*nextdad, #BMP listed twice, need to correct and specify more parameters
+				AP + BPr*s_rank + BPf*father + BPn*nextdad,
+
                 AP ~ ap_id[prt1_index] + ap_id[prt2_index] + ap_dyad[dyad_index],
 				BPf ~ bpf_id[prt1_index] + bpf_id[prt2_index],
 				BPr ~ bpr_id[prt1_index] + bpr_id[prt2_index],
-								
+				BPn ~ bpn_id[prt1_index] + bpn_id[prt2_index],
+				
   #log(mu)  ~	ap + bm_rank*s_rank + bm_pat*father + bm_next*nextdad + bm_group*PHG +
   log(mu)  ~	am + bm_rank*s_rank + bm_pat*father + bm_next*nextdad + bm_group*PHG +
-				AM + BMr*s_rank + BMf*father + BMf*nextdad,
-				
+				#AM + BMr*s_rank + BMf*father + BMf*nextdad, #BMF listed twice
+				AM + BMr*s_rank + BMf*father + BMn*nextdad,
+
                 AM ~ am_id[prt1_index] + am_id[prt2_index] + am_dyad[dyad_index],
 				BMf ~ bmf_id[prt1_index] + bmf_id[prt2_index],
 				BMr ~ bmr_id[prt1_index] + bmr_id[prt2_index],
-  
+  				BMn ~ bmn_id[prt1_index] + bmn_id[prt2_index],
+
     c(ap,am,bm_pat,bp_pat,bp_group,bm_group,bm_rank,bp_rank,bp_next,bm_next) ~ dnorm(0,2),
-	c(ap_id,am_id,bpf_id,bmf_id,bpr_id,bmr_id)[prt1_index] ~ dmvnormNC( sigma_id , Rho_id ),
+	c(ap_id,am_id,bpf_id,bmf_id,bpr_id,bmr_id,bpn_id,bmn_id)[prt1_index] ~ dmvnormNC( sigma_id , Rho_id ),
 	c(ap_dyad,am_dyad)[dyad_index] ~ dmvnormNC(sigma_dyad , Rho_dyad ),
 	c(Rho_id,Rho_dyad) ~ dlkjcorr(3),	
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2),
 	scale ~ dcauchy(0,2)
 ),
-data=d, cores=2 , chains=2 , warmup=3000, iter=6000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99,max_treedepth=15), WAIC=TRUE)
+data=d, cores=2 , chains=2 , warmup=2000, iter=4000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
 
 plot(p_lac2)
 par(mfrow = c(1, 1))
@@ -206,19 +220,22 @@ plot(precis(p_lac2, pars=c("bp_rank","bm_rank","bp_pat","bm_pat","bp_no","bm_no"
 
 
 link_father <- link(p_lac2, n=1000 , data=d.pred_father1,replace=
-	list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z, bpf_id=a_prt1_z, bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, ap_dyad=a_dyad_z, am_dyad=a_dyad_z, bpf_id=a_prt1_z, 
+		bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z, bpn_id=a_prt1_z, bmn_id=a_prt1_z), WAIC=TRUE)
 pred_father <- (1-link_father$p)*link_father$mu
 median(pred_father)
 HPDI(pred_father)
 
 link_nodad <- link(p_lac2, n=1000 , data=d.pred_nodad1, replace=
-	list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z, bpf_id=a_prt1_z, bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, ap_dyad=a_dyad_z, am_dyad=a_dyad_z, bpf_id=a_prt1_z, 
+		bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z, bpn_id=a_prt1_z, bmn_id=a_prt1_z), WAIC=TRUE)
 pred_nodad <- (1-link_nodad$p)*link_nodad$mu
 median(pred_nodad)
 HPDI(pred_nodad)
 
 link_nextdad <- link(p_lac2, n=1000 , data=d.pred_nextdad1, WAIC=TRUE,replace=
-	list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z, bpf_id=a_prt1_z, bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, ap_dyad=a_dyad_z, am_dyad=a_dyad_z, bpf_id=a_prt1_z, 
+		bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z, bpn_id=a_prt1_z, bmn_id=a_prt1_z), WAIC=TRUE)
 pred_nextdad <- (1-link_nextdad$p)*link_nextdad$mu
 median(pred_nextdad)
 HPDI(pred_nextdad)
@@ -255,7 +272,8 @@ legend(6.25,2, legend = c("sires of current infant","sires of next infant","othe
 
 #Plot prep for rank
 link_rank <- link(p_lac2, n=1000 , data=d.pred_rank1, WAIC=TRUE,replace=
-	list(ap_id=a_prt1_z, am_id=a_prt1_z, ap_dyad=a_dyad_z, am_dyad=a_dyad_z, bpf_id=a_prt1_z, bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, ap_dyad=a_dyad_z, am_dyad=a_dyad_z, bpf_id=a_prt1_z, 
+		bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z, bpn_id=a_prt1_z, bmn_id=a_prt1_z), WAIC=TRUE)
 pred_rank <- (1-link_rank$p)*link_rank$mu
 pred.median=apply(pred_rank , 2 , median )
 pred.HPDI=apply(pred_rank , 2 , HPDI )
@@ -268,31 +286,43 @@ shade(pred.HPDI,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=1.5)
 mtext("DSI", side=2, line=1.5)
 ########
-###BJB correct below#####
-# Is this how one plot slope effects???
-dyadlist <- (unique(d$dyad_index))
-idlist <- (unique(d$prt1_index))
 
-d.pred_slope <- list(
-    prt1_index=idlist,
-	prt2_index=idlist,
-	dyad_index=rep(1,length(idlist)),
-	father=rep(mean(d$father),length(idlist)),
-	nextdad=rep(mean(d$nextdad),length(idlist)),
-	s_rank=rep(mean(d$s_rank),length(idlist)),
-	PHG=rep(mean(d$PHG),length(idlist))
+###BJB plots for varying slopes#####
+
+dyadlist <- sort(unique(d$dyad_index))
+idlist <- sort(unique(d$prt1_index))
+
+
+str(pred_slope)
+
+par(mar=c(3,3,0.5,1.5))
+plot( DSI ~ s_rank , data=d , col=alpha("blue",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='') #plot main effect
+#lines( rank.seq , pred.median, lw=2, col="black" )
+#shade(pred.HPDI,rank.seq,col=alpha("black",0.2))
+mtext("rank", side=1, line=1.5)
+mtext("DSI", side=2, line=1.5)
+
+for (i in 1:length(idlist)){ #loop over individuals
+
+	d.pred_slope <- list(
+    prt1_index=rep(i,length(rank.seq)), #loop predictions over each individual i
+	prt2_index=rep(i,length(rank.seq)),
+	#prt2_index=rep(1,length(idlist)),
+	dyad_index=rep(1,length(rank.seq)),
+	father=rep(mean(d$father),length(rank.seq)),
+	nextdad=rep(mean(d$nextdad),length(rank.seq)),
+	s_rank=rank.seq,
+	PHG=rep(mean(d$PHG),length(rank.seq))
 )
+
 link_slope <- link(p_lac2, n=1000 , data=d.pred_slope,replace=
-		list(ap_id=a_prt1_z, am_id=a_prt1_z, ap_dyad=a_dyad_z, am_dyad=a_dyad_z), WAIC=TRUE)
+	list( ap_dyad=a_dyad_z, am_dyad=a_dyad_z, bpf_id=a_prt1_z, 
+		bmf_id=a_prt1_z,  bpn_id=a_prt1_z, bmn_id=a_prt1_z), WAIC=TRUE) #remove the intercepts and corresponding slope parameters from replace list for varying slope of interest you wish to plot
 pred_slope <- (1-link_slope$p)*link_slope$mu
 
-
-par(cex=0.75, mar=c(3,4,.5,.5))
-plot(1,1 , ylim=c(0,6) , xlim=c(0,length(idlist)) , col="white" , cex.axis=1 , xaxt='n' , xlab='' , ylab='')
-for (i in 1:length(idlist)){
-	lines( y=c(HPDI(pred_slope[,i])[1] ,HPDI(pred_slope[,i])[2] ) , x=c(i,i) , col="black" )
-	points( i , median(pred_slope[,i]) , pch=15 , cex=0.5 )
+	lines( rank.seq , apply(pred_slope, 2, median) , lw=2, col=alpha("blue",0.2) ) #each line is a unique per individual varying slope and intercept
 }
+
 
 #########################################P_LAC3#####################################################################
 p_lac3 <- map2stan(
@@ -319,7 +349,7 @@ DSI ~ dzagamma2( p, mu , scale ),
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2),
 	scale ~ dcauchy(0,2)
 ),
-data=d, cores=2 , chains=2 , warmup=3000, iter=6000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
+data=d, cores=2 , chains=2 , warmup=2000, iter=4000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
 
 plot(p_lac3)
 par(mfrow = c(1, 1))
@@ -493,8 +523,10 @@ DSI ~ dzagamma2( p, mu , scale ),
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2),
 	scale ~ dcauchy(0,2)
 	),
-data=d, cores=2 , chains=2, warmup=3000, iter=6000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99,max_treedepth = 15), WAIC=TRUE)
+data=d, cores=2 , chains=2, warmup=2000, iter=4000, constraints=list(scale="lower=0") , control=list(adapt_delta=0.99), WAIC=TRUE)
 
+#sAVE WORKSPACE
+save(d,p_lac1, p_lac2, p_lac3, p_lac4 , file="parent_eff_lac.rdata")
 output_lac4=precis(p_lac4, depth=2 , digits=2)@output
 plot(precis(p_lac4, pars=c("ap","am","bp_rank","bm_rank","bp_pat","bm_pat","bp_next","bm_next","bp_group","bm_group","bp_rank_pat","bm_rank_pat","bp_rank_next","bm_rank_next"),depth=2))
 
@@ -506,15 +538,15 @@ plot(coefs4,pars=c("ap","am","bp_rank","bm_rank","bp_pat","bm_pat","bp_next","bm
 
 #prep plot paternity
 link_father <- link(p_lac4, n=1000 , data=d.pred_father1,replace=
-	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred_father <- (1-link_father$p)*link_father$mu
 
 link_nodad <- link(p_lac4, n=1000 , data=d.pred_nodad1, replace=
-	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred_nodad <- (1-link_nodad$p)*link_nodad$mu
 
 link_nextdad <- link(p_lac4, n=1000 , data=d.pred_nextdad1, WAIC=TRUE,replace=
-	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred_nextdad <- (1-link_nextdad$p)*link_nextdad$mu
 
 
@@ -550,19 +582,22 @@ legend(6.25,2, legend = c("sires of current infant","sires of next infant","othe
 	   
 #prep plot rank
 link2 <- link( p_lac4 , data=d.pred_father3 , n=1000 , replace=
-	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
+		bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred1 <- (1-link2$p)*link2$mu
 pred.median1 <- apply(pred1 , 2 , median )
 pred.HPDI1 <- apply( pred1 , 2 , HPDI )
 
 link2 <- link( p_lac4 , data=d.pred_nodad3 , n=1000 , replace=
-	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
+		bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred2 <- (1-link2$p)*link2$mu
 pred.median2 <- apply(pred2 , 2 , median )
 pred.HPDI2 <- apply( pred2 , 2 , HPDI )
 
 link2 <- link( p_lac4 , data=d.pred_nextdad3 , n=1000 , replace=
-	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
+		bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred3 <- (1-link2$p)*link2$mu
 pred.median3 <- apply(pred3 , 2 , median )
 pred.HPDI3 <- apply( pred3 , 2 , HPDI )
@@ -579,7 +614,7 @@ mtext("DSI", side=2, line=1.9,cex=0.8)
 text(-1,11,"sires current infant")
 
 par(mar=c(1,3,0.5,0.5))
-plot( DSI[d$nodad==1] ~ s_rank[d$nodad==1] , data=d , col=alpha("blue",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+plot( DSI[d$nodad==1] ~ s_rank[d$nodad==1] , data=d , col=alpha("red",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
 lines( rank.seq , pred.median2 )
 shade(pred.HPDI2,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
@@ -587,75 +622,106 @@ mtext("DSI", side=2, line=1.9,cex=0.8)
 text(-1.1,11,"other males")
 
 par(mar=c(1,3,0.5,0.5))
-plot( DSI[d$nextdad==1] ~ s_rank[nextdad==1] , data=d , col=alpha("blue",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+plot( DSI[d$nextdad==1] ~ s_rank[nextdad==1] , data=d , col=alpha("orange",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
 lines( rank.seq , pred.median3 )
 shade(pred.HPDI3,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
 mtext("DSI", side=2, line=1.9,cex=0.8)
 text(-1.1,11,"sires next infant")
 par(mfrow = c(1, 1),oma=c(0,0,0,0))
-##########################
-#Plotting slopes????
+##########################triptych varying slopes individuals plots##############
+
 dyadlist <- (unique(d$dyad_index))
 idlist <- (unique(d$prt1_index))
+par(mfrow = c(1, 3),oma = c( 2.5, 0.5, 0, 0 ))
 
-d.pred_father.s <- list(
-    prt1_index=idlist,
-	prt2_index=idlist,
-	dyad_index=rep(1,length(idlist)),
-	father=rep(1,length(idlist)),
-	nextdad=rep(0,length(idlist)),
-	s_rank=rep(mean(d$s_rank),length(idlist)),
-	PHG=rep(mean(d$PHG),length(idlist))
-)
+#plot for yes father
+par(mar=c(1,3,0.5,0.5))
+plot( DSI[d$father==1] ~ s_rank[d$father==1] , data=d , col=alpha("blue",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+lines( rank.seq , pred.median1 )
+#shade(pred.HPDI1,rank.seq,col=alpha("black",0.2))
+mtext("rank", side=1, line=2,cex=0.8)
+mtext("DSI", side=2, line=1.9,cex=0.8)
+text(-1,11,"sires current infant")
 
-d.pred_nodad.s <- list(
-    prt1_index=idlist,
-	prt2_index=idlist,
-	dyad_index=rep(1,length(idlist)),
-	father=rep(0,length(idlist)),
-	nextdad=rep(0,length(idlist)),
-	s_rank=rep(mean(d$s_rank),length(idlist)),
-	PHG=rep(mean(d$PHG),length(idlist))
-)
+for (i in 1:length(idlist)){ #loop over individuals
 
-d.pred_nextdad.s <- list(
-    prt1_index=idlist,
-	prt2_index=idlist,
-	dyad_index=rep(1,length(idlist)),
-	father=rep(0,length(idlist)),
-	nextdad=rep(1,length(idlist)),
-	s_rank=rep(mean(d$s_rank),length(idlist)),
-	PHG=rep(mean(d$PHG),length(idlist))
-)
+	d.pred_father.s  <- list(
+	    prt1_index=rep(i,length(rank.seq)), #loop predictions over each individual i
+		prt2_index=rep(i,length(rank.seq)),
+		#prt2_index=rep(1,length(idlist)),
+		dyad_index=rep(1,length(rank.seq)),
+		father=rep(1,length(rank.seq)),
+		nextdad=rep(0,length(rank.seq)),
+		s_rank=rank.seq,
+		PHG=rep(mean(d$PHG),length(rank.seq))
+		)
 
-link_father <- link(p_lac4, n=1000 , data=d.pred_father.s,replace=
-		list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z), WAIC=TRUE)
-pred_father <- (1-link_father$p)*link_father$mu
+	link_father <- link(p_lac4, n=1000 , data=d.pred_father.s,replace=
+		list( am_dyad=a_dyad_z,ap_dyad=a_dyad_z, bpn_id=a_prt1_z,bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE) #take out all rank slopes and father related coefs
+	pred_father <- (1-link_father$p)*link_father$mu
+	lines( rank.seq , apply(pred_father, 2, median) , lw=2, col=alpha("blue",0.2) ) #each line is a unique per individual varying slope and intercept
 
-link_nodad <- link(p_lac4, n=1000 , data=d.pred_nodad.s, replace=
-		list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z), WAIC=TRUE)
-pred_nodad <- (1-link_nodad$p)*link_nodad$mu
-
-link_nextdad <- link(p_lac4, n=1000 , data=d.pred_nextdad.s, WAIC=TRUE,replace=
-		list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z), WAIC=TRUE)
-pred_nextdad <- (1-link_nextdad$p)*link_nextdad$mu
-
-par(cex=0.75, mar=c(3,4,.5,.5))
-plot(1,1 , ylim=c(0,4) , xlim=c(0,length(idlist)) , col="white" , cex.axis=1 , xaxt='n' , xlab='' , ylab='')
-for (i in 1:length(idlist)){
-	lines( y=c(HPDI(pred_father[,i])[1] ,HPDI(pred_father[,i])[2] ) , x=c(i,i) , col="black" )
-	points( i , median(pred_father[,i]) , pch=15 , cex=0.5 )
-	lines( y=c(HPDI(pred_nodad[,i])[1] ,HPDI(pred_nodad[,i])[2] ) , x=c(i+0.2,i+0.2) , col="red" )
-	points( i+0.2 , median(pred_nodad[,i]) , pch=15 , cex=0.5 , col="red"  )
-	lines( y=c(HPDI(pred_nextdad[,i])[1] ,HPDI(pred_nextdad[,i])[2] ) , x=c(i+0.4,i+0.4) , col="blue" )
-	points( i+0.4 , median(pred_nextdad[,i]) , pch=15 , cex=0.5 , col="blue"  )
 }
 
-legend(1,4, legend = c("sire of current infant", "sire of next infant","no sire male"),
-      lty=1, lw=1 , cex=1, bty="n",y.intersp=0.9, col=c("black","blue","red"))
+par(mar=c(1,3,0.5,0.5))
+plot( DSI[d$nodad==1] ~ s_rank[d$nodad==1] , data=d , col=alpha("red",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+lines( rank.seq , pred.median2 )
+#shade(pred.HPDI2,rank.seq,col=alpha("black",0.2))
+mtext("rank", side=1, line=2,cex=0.8)
+mtext("DSI", side=2, line=1.9,cex=0.8)
+text(-1.1,11,"other males")
+
+for (i in 1:length(idlist)){ #loop over individuals
+	d.pred_nodad.s  <- list(
+	    prt1_index=rep(i,length(rank.seq)), #loop predictions over each individual i
+		prt2_index=rep(i,length(rank.seq)),
+		#prt2_index=rep(1,length(idlist)),
+		dyad_index=rep(1,length(rank.seq)),
+		father=rep(0,length(rank.seq)),
+		nextdad=rep(0,length(rank.seq)),
+		s_rank=rank.seq,
+		PHG=rep(mean(d$PHG),length(rank.seq))
+		)
+
+	link_nodad <- link(p_lac4, n=1000 , data=d.pred_nodad.s, replace=
+			list( am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
+			bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpn_id=a_prt1_z,bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE) #take out intercepts and rank slopes
+	pred_nodad <- (1-link_nodad$p)*link_nodad$mu
+	lines( rank.seq , apply(pred_nodad, 2, median) , lw=2, col=alpha("red",0.2) ) #each line is a unique per individual varying slope and intercept
+}
 
 
+##below is plot for next dad
+par(mar=c(1,3,0.5,0.5))
+plot( DSI[d$nextdad==1] ~ s_rank[nextdad==1] , data=d , col=alpha("orange",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+lines( rank.seq , pred.median3 )
+#shade(pred.HPDI3,rank.seq,col=alpha("black",0.2))
+mtext("rank", side=1, line=2,cex=0.8)
+mtext("DSI", side=2, line=1.9,cex=0.8)
+text(-1.1,11,"sires next infant")
+#par(mfrow = c(1, 1),oma=c(0,0,0,0))
+
+for (i in 1:length(idlist)){ #loop over individuals
+
+	d.pred_nextdad.s  <- list(
+	    prt1_index=rep(i,length(rank.seq)), #loop predictions over each individual i
+		prt2_index=rep(i,length(rank.seq)),
+		#prt2_index=rep(1,length(idlist)),
+		dyad_index=rep(1,length(rank.seq)),
+		father=rep(0,length(rank.seq)),
+		nextdad=rep(1,length(rank.seq)),
+		s_rank=rank.seq,
+		PHG=rep(mean(d$PHG),length(rank.seq))
+		)
+
+	link_nextdad <- link(p_lac4, n=1000 , data=d.pred_nextdad.s, WAIC=TRUE,replace=
+			list(am_dyad=a_dyad_z,ap_dyad=a_dyad_z, bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z), WAIC=TRUE)#take out all rank slopes and next father related coefs
+	pred_nextdad <- (1-link_nextdad$p)*link_nextdad$mu
+	lines( rank.seq , apply(pred_nextdad, 2, median) , lw=2, col=alpha("orange",0.2) ) #each line is a unique per individual varying slope and intercept
+}
+
+###end of onerous graphing code for triptych
 
 
 
