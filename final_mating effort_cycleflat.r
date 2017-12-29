@@ -57,12 +57,13 @@ setdiff(cf$momid,cf$partner)
 cf$dyad=droplevels(cf$dyad)
 cf$partner=droplevels(cf$partner)
 cf$momid=droplevels(cf$momid)
-
+c$male_index <- as.integer
 
 cf$PHG <- ifelse(cf$group_next=="PHG" , 1 , 0 )
 cf$dyad_index <- as.integer(as.factor(cf$dyad))
 cf$prt1_index <- as.integer(as.factor(cf$momid))
 cf$prt2_index <- as.integer(as.factor(cf$partner))
+cf$male_index <- as.integer(as.factor(cf$dadid))
 
 #cf$s_score_doc30=(cf$score_doc30 - mean(cf$score_doc30))/sd(cf$score_doc30)
 cf$s_score_doc=(cf$score_doc - mean(cf$score_doc))/sd(cf$score_doc)
@@ -98,6 +99,19 @@ nextdad ~ dbinom( 1 , p ) ,
 	c(sigma_dyad,sigma_id) ~ dcauchy(0,2)
 	
 ) , data=cf ,warmup=3000,iter=10000,chains=2,cores=2, control=list(adapt_delta=0.99,max_treedepth=15), WAIC=TRUE)
+
+###this  is my modified code of m_effort1_BJB####
+m_effort1_BJB <- map2stan(  
+alist(
+nextdad ~ dbinom( 1 , p ) ,
+
+	logit(p) <- a + b_nmales*t_nmales + b_dsi*s_rDSI + b_rank*s_score_doc + b_phg*PHG + a_male[male_index],
+	c(a,b_rank,b_phg,b_dsi,b_nmales) ~ dnorm(0,1),
+	a_male[prt1_index] ~ dnorm(0,sigma_id),
+	sigma_id ~ dcauchy(0,2)
+	
+) , data=cf ,warmup=1000,iter=2000,chains=2,cores=2, control=list(adapt_delta=0.95), WAIC=TRUE)
+
 
 output1=precis(m_effort1 , depth=2 , digits=2)@output
 plot(m_effort1)
