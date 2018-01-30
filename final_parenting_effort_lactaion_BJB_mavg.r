@@ -679,7 +679,7 @@ pred_rank <- PR2 #makes pred father all predictions from PF2
 pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
 pred_father <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 
-lines( rank.seq , apply(pred_father, 2, median) , lw=2, col=alpha("blue",0.2) ) #each line is a unique per individual varying slope and intercept
+lines( rank.seq , apply(pred_father, 2, mean) , lw=2, col=alpha("blue",0.2) ) #each line is a unique per individual varying slope and intercept
 
 }
 
@@ -723,7 +723,7 @@ pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate nu
 pred_nodad <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 
 
-	lines( rank.seq , apply(pred_nodad, 2, median) , lw=2, col=alpha("red",0.2) ) #each line is a unique per individual varying slope and intercept
+	lines( rank.seq , apply(pred_nodad, 2, mean) , lw=2, col=alpha("red",0.2) ) #each line is a unique per individual varying slope and intercept
 }
 
 
@@ -766,7 +766,7 @@ pred_rank <- PR2 #makes pred father all predictions from PF2
 pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
 pred_nextdad <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 
-	lines( rank.seq , apply(pred_nextdad, 2, median) , lw=2, col=alpha("orange",0.2) ) #each line is a unique per individual varying slope and intercept
+	lines( rank.seq , apply(pred_nextdad, 2, mean) , lw=2, col=alpha("orange",0.2) ) #each line is a unique per individual varying slope and intercept
 }
 
 ###end of onerous graphing code for triptych
