@@ -1,11 +1,10 @@
 library(rethinking)
-library(Cairo)												
+#library(Cairo)												
 
 #load workspace
 load("/Users/brendanbarrett/Dropbox/Veronika Joan DSI male/final workspaces/parent_eff_lac_jan30.rdata")
 
 #zeros for varying effects to just plot main effect
-
 #a_prt_sims <- rnorm(1000*length(unique(d$prt1_index)),0,length(unique(d$prt1_index)))
 #a_prt1_z <- matrix(a_prt_sims,1000,length(unique(d$prt1_index)))
 a_prt1_z <- matrix(0,1000,length(unique(d$prt1_index))) 
@@ -71,8 +70,9 @@ PF2 <- (1-LF2$p)*LF2$mu #for p_lac2
 PF4 <- (1-LF4$p)*LF4$mu #for p_lac4
 
 #make a vector or predictions sampled according to model weight, should be ordereed alphabetically/numerically
-pred_father <- PF2 #makes pred father all predictions from PF2
-pred_father[1:idw[2],] <- PF4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_father <- PF2 #makes pred father all predictions from PF2
+#pred_father[1:idw[2],] <- PF4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+pred_father <- PF4 #makes pred father all predictions from PF2
 
 pred_father <- sample(pred_father) #randomly mixes vector-- important to make graphing individual model predictions random
 median(pred_father)
@@ -94,8 +94,10 @@ PN2 <- (1-LN2$p)*LN2$mu #for p_lac2
 PN4 <- (1-LN4$p)*LN4$mu #for p_lac4
 
 #make a vector or predictions sampled according to model weight, should be ordereed alphabetically/numerically
-pred_nodad <- PN2 #makes pred father all predictions from PF2
-pred_nodad[1:idw[2],] <- PN4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_nodad <- PN2 #makes pred father all predictions from PF2
+#pred_nodad[1:idw[2],] <- PN4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+
+pred_nodad <- PN4 #makes pred father all predictions from PF2
 pred_nodad <- sample(pred_nodad) #randomly mixes vector-- important to make graphing individual model predictions random
 median(pred_nodad)
 HPDI(pred_nodad)
@@ -114,8 +116,10 @@ list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_
 #generate predictions from each model that will be averaged
 PX2 <- (1-LX2$p)*LX2$mu #for p_lac2
 PX4 <- (1-LX4$p)*LX4$mu #for p_lac4
-pred_nextdad <- PX2 #makes pred father all predictions from PF2
-pred_nextdad[1:idw[2],] <- PX4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_nextdad <- PX2 #makes pred father all predictions from PF2
+#pred_nextdad[1:idw[2],] <- PX4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+pred_nextdad <- PX4 #makes pred father all predictions from PF2
+
 pred_nextdad <- sample(pred_nextdad)
 median(pred_nextdad)
 HPDI(pred_nextdad)
@@ -186,8 +190,10 @@ list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_
 #generate predictions from each model that will be averaged, this is a vector
 PR2 <- (1-LR2$p)*LR2$mu #for p_lac2
 PR4 <- (1-LR4$p)*LR4$mu #for p_lac4
-pred_rank <- PR2 #makes pred father all predictions from PF2
-pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_rank <- PR2 #makes pred father all predictions from PF2
+#pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+pred_rank <- PR4 #makes pred father all predictions from PF2
+
 pred_rank <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 pred.median=apply(pred_rank , 2 , median )
 pred.HPDI=apply(pred_rank , 2 , HPDI )
@@ -236,8 +242,9 @@ LR4 <- link(p_lac4, n=1000 , data=d.pred_slope,replace=
 
 PR2 <- (1-LR2$p)*LR2$mu #for p_lac2
 PR4 <- (1-LR4$p)*LR4$mu #for p_lac4
-pred_rank <- PR2 #makes pred father all predictions from PF2
-pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_rank <- PR2 #makes pred father all predictions from PF2
+#pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+pred_rank <- PR4 #makes pred father all predictions from PF2
 pred_slope <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 
 #pred.median=apply(pred_rank , 2 , median )
@@ -296,8 +303,10 @@ list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_
 #generate predictions from each model that will be averaged, this is a vector
 PR2 <- (1-LR2$p)*LR2$mu #for p_lac2
 PR4 <- (1-LR4$p)*LR4$mu #for p_lac4
-pred_rank <- PR2 #makes pred father all predictions from PF2
-pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_rank <- PR2 #makes pred father all predictions from PF2
+#pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+pred_rank <- PR4 #makes pred father all predictions from PF2
+
 pred1 <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 pred.median1 <- apply(pred1 , 2 , median )
 pred.HPDI1 <- apply( pred1 , 2 , HPDI )
@@ -316,8 +325,10 @@ list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_
 #generate predictions from each model that will be averaged, this is a vector
 PR2 <- (1-LR2$p)*LR2$mu #for p_lac2
 PR4 <- (1-LR4$p)*LR4$mu #for p_lac4
-pred_rank <- PR2 #makes pred father all predictions from PF2
-pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_rank <- PR2 #makes pred father all predictions from PF2
+#pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+pred_rank <- PR4 #makes pred father all predictions from PF2
+
 pred2 <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 pred.median2 <- apply(pred2 , 2 , median )
 pred.HPDI2 <- apply( pred2 , 2 , HPDI )
@@ -336,8 +347,10 @@ list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_
 #generate predictions from each model that will be averaged, this is a vector
 PR2 <- (1-LR2$p)*LR2$mu #for p_lac2
 PR4 <- (1-LR4$p)*LR4$mu #for p_lac4
-pred_rank <- PR2 #makes pred father all predictions from PF2
-pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_rank <- PR2 #makes pred father all predictions from PF2
+#pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+pred_rank <- PR4 #makes pred father all predictions from PF2
+
 pred3 <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 pred.median3 <- apply(pred3 , 2 , median )
 pred.HPDI3 <- apply( pred3 , 2 , HPDI )
@@ -412,22 +425,12 @@ list(am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpn_id=a_prt1_z,
 		bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 
 
-
-#######LF2 <- link(p_lac2, n=1000 , data=d.pred_father1, replace=
-	#list(ap_id=a_prt1_z, am_id=a_prt1_z, ap_dyad=a_dyad_z, am_dyad=a_dyad_z, bpf_id=a_prt1_z, 
-	#	bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z, bpn_id=a_prt1_z, bmn_id=a_prt1_z), WAIC=TRUE)
-
-##link for plac4
-
-#list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
-#		bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,
-#		bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
-
 #generate predictions from each model that will be averaged, this is a vector
 PR2 <- (1-LR2$p)*LR2$mu #for p_lac2
 PR4 <- (1-LR4$p)*LR4$mu #for p_lac4
-pred_rank <- PR2 #makes pred father all predictions from PF2
-pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_rank <- PR2 #makes pred father all predictions from PF2
+#pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+pred_rank <- PR4 #makes pred father all predictions from PF2
 pred_father <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 
 lines( rank.seq , apply(pred_father, 2, median) , lw=2, col=alpha("blue",0.2) ) #each line is a unique per individual varying slope and intercept
@@ -466,8 +469,9 @@ LR4 <- link(p_lac4, n=1000 , data=d.pred_nodad.s , replace=
 #generate predictions from each model that will be averaged, this is a vector
 PR2 <- (1-LR2$p)*LR2$mu #for p_lac2
 PR4 <- (1-LR4$p)*LR4$mu #for p_lac4
-pred_rank <- PR2 #makes pred father all predictions from PF2
-pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_rank <- PR2 #makes pred father all predictions from PF2
+#pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+pred_rank <- PR4 #makes pred father all predictions from PF2
 pred_nodad <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 
 
@@ -506,8 +510,10 @@ list( am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
 #generate predictions from each model that will be averaged, this is a vector
 PR2 <- (1-LR2$p)*LR2$mu #for p_lac2
 PR4 <- (1-LR4$p)*LR4$mu #for p_lac4
-pred_rank <- PR2 #makes pred father all predictions from PF2
-pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+#pred_rank <- PR2 #makes pred father all predictions from PF2
+#pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
+pred_rank <- PR4 #makes pred father all predictions from PF2
+
 pred_nextdad <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
 
 	lines( rank.seq , apply(pred_nextdad, 2, median) , lw=2, col=alpha("orange",0.2) ) #each line is a unique per individual varying slope and intercept
@@ -521,42 +527,17 @@ dev.off()
 ###end of onerous graphing code for triptych
 
 
+
 ##########################################################################
 #############################################################################
-#Plot z and g predictions separately and joint predictions
-LR2 <- link(p_lac2, n=1000 , data=d.pred_father3 , replace=
-	list(ap_id=a_prt1_z, am_id=a_prt1_z, ap_dyad=a_dyad_z, am_dyad=a_dyad_z, bpf_id=a_prt1_z, 
-		bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z, bpn_id=a_prt1_z, bmn_id=a_prt1_z), WAIC=TRUE)
-
-##link for plac4
-LR4 <- link(p_lac4, n=1000 , data=d.pred_father3 , replace=
-list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
-		bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,
-		bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
-
-#generate predictions from each model that will be averaged, this is a vector
-PR2p <- (1-LR2$p) #for p_lac2
-PR4p <- (1-LR4$p) #for p_lac4
-PR2mu <- LR2$mu #for p_lac2
-PR4mu <- LR4$mu #for p_lac4
-PR2 <- (1-LR2$p)*LR2$mu #for p_lac2
-PR4 <- (1-LR4$p)*LR4$mu #for p_lac4
-
-#joint
-pred_rank <- PR2 #makes pred father all predictions from PF2
-pred_rank[1:idw[2],] <- PR4[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
-pred1 <- pred_rank[sample(nrow(pred_rank)),] #rearranges rows randomly
-
-#1-p
-pred1p <- PR2p #makes pred father all predictions from PF2
-pred1p[1:idw[2],] <- PR4p[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
-pred1p <- pred1p[sample(nrow(pred1p)),] #rearranges rows randomly
-#mu
-pred1mu <- PR2mu #makes pred father all predictions from PF2
-pred1mu[1:idw[2],] <- PR4mu[1:idw[2],] #overwrited predfather with approriate number of weighted predicitons from PF4
-pred1mu <- pred1mu[sample(nrow(pred1mu)),] #rearranges rows randomly
-
-
+link2 <- link( p_lac4 , data=d.pred_father3 , n=1000 , replace=
+	#list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
+			bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,
+			bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
+pred1p <- 1-link2$p
+pred1mu <- link2$mu
+pred1 <- (1-link2$p)*link2$mu
 pred.median1 <- apply(pred1 , 2 , median )
 pred.HPDI1 <- apply( pred1 , 2 , HPDI )
 pred.median1p <- apply(pred1p , 2 , median )
@@ -564,8 +545,12 @@ pred.HPDI1p <- apply( pred1p , 2 , HPDI )
 pred.median1mu <- apply(pred1mu , 2 , median )
 pred.HPDI1mu <- apply( pred1mu, 2 , HPDI )
 
+
 link2 <- link( p_lac4 , data=d.pred_nodad3 , n=1000 , replace=
-	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	#list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
+			bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,
+			bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred2p <- 1-link2$p
 pred2mu <- link2$mu
 pred2 <- (1-link2$p)*link2$mu
@@ -577,7 +562,10 @@ pred.median2mu <- apply(pred2mu , 2 , median )
 pred.HPDI2mu <- apply( pred2mu, 2 , HPDI )
 
 link2 <- link( p_lac4 , data=d.pred_nextdad3 , n=1000 , replace=
-	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	#list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
+			bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,
+			bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred3p <- 1-link2$p
 pred3mu <- link2$mu
 pred3 <- (1-link2$p)*link2$mu
@@ -589,6 +577,8 @@ pred.median3mu <- apply(pred3mu , 2 , median )
 pred.HPDI3mu <- apply( pred3mu, 2 , HPDI )
 
 #plot rank
+pdf("p_mu_rank_allmales_lactation.pdf", height=7,width=7)
+
 par(mfrow = c(3, 3),oma = c(0.5, 0.5, 2, 4.2 ))
 
 par(mar=c(3,3,0.5,0.5))
@@ -600,21 +590,21 @@ plot( zDSI[d$father==1] ~ s_rank[d$father==1] , data=d , col=alpha("blue",0.5),p
 lines( rank.seq , pred.median1p )
 shade(pred.HPDI1p,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
-mtext("likelihood DSI>0", side=2, line=1.9,cex=0.8)
+mtext("probability DSI>0", side=2, line=1.9,cex=0.8)
 mtext("sires current infant",side=3,line=0.5,cex=0.8)
 
-plot( zDSI[d$nodad==1] ~ s_rank[d$nodad==1] , data=d , col=alpha("blue",0.5),pch=16 ,ylim=c(0,1),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+plot( zDSI[d$nodad==1] ~ s_rank[d$nodad==1] , data=d , col=alpha("orange",0.5),pch=16 ,ylim=c(0,1),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
 lines( rank.seq , pred.median2p )
 shade(pred.HPDI2p,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
-mtext("likelihood DSI>0", side=2, line=1.9,cex=0.8)
+mtext("probability DSI>0", side=2, line=1.9,cex=0.8)
 mtext("other males",side=3,line=0.5,cex=0.8)
 
-plot( zDSI[d$nextdad==1] ~ s_rank[nextdad==1] , data=d , col=alpha("blue",0.5),pch=16 ,ylim=c(0,1),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+plot( zDSI[d$nextdad==1] ~ s_rank[nextdad==1] , data=d , col=alpha("red",0.5),pch=16 ,ylim=c(0,1),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
 lines( rank.seq , pred.median3p )
 shade(pred.HPDI3p,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
-mtext("likelihood DSI>0", side=2, line=1.9,cex=0.8)
+mtext("probability DSI>0", side=2, line=1.9,cex=0.8)
 mtext("sires next infant",side=3,line=0.5,cex=0.8)
 mtext("Bernoulli",side=4,line=0.5,cex=0.8,las=1)
 
@@ -624,13 +614,13 @@ shade(pred.HPDI1mu,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
 mtext("DSI", side=2, line=1.9,cex=0.8)
 
-plot( gDSI[d$nodad==1] ~ gs_rank[d$nodad==1] , data=d , col=alpha("blue",0.5),pch=16 ,ylim=c(0,12),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+plot( gDSI[d$nodad==1] ~ gs_rank[d$nodad==1] , data=d , col=alpha("orange",0.5),pch=16 ,ylim=c(0,12),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
 lines( rank.seq , pred.median2mu )
 shade(pred.HPDI2mu,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
 mtext("DSI", side=2, line=1.9,cex=0.8)
 
-plot( gDSI[d$nextdad==1] ~ gs_rank[nextdad==1] , data=d , col=alpha("blue",0.5),pch=16 ,ylim=c(0,12),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+plot( gDSI[d$nextdad==1] ~ gs_rank[nextdad==1] , data=d , col=alpha("red",0.5),pch=16 ,ylim=c(0,12),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
 lines( rank.seq , pred.median3mu )
 shade(pred.HPDI3mu,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
@@ -643,38 +633,53 @@ shade(pred.HPDI1,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
 mtext("DSI", side=2, line=1.9,cex=0.8)
 
-plot( DSI[d$nodad==1] ~ s_rank[d$nodad==1] , data=d , col=alpha("blue",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+plot( DSI[d$nodad==1] ~ s_rank[d$nodad==1] , data=d , col=alpha("orange",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
 lines( rank.seq , pred.median2 )
 shade(pred.HPDI2,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
 mtext("DSI", side=2, line=1.9,cex=0.8)
 
-plot( DSI[d$nextdad==1] ~ s_rank[nextdad==1] , data=d , col=alpha("blue",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
+plot( DSI[d$nextdad==1] ~ s_rank[nextdad==1] , data=d , col=alpha("red",0.5),pch=16 ,ylim=c(0,11),ylab='',xlab='',xlim=c(min(d$s_rank),max(d$s_rank)))
 lines( rank.seq , pred.median3 )
 shade(pred.HPDI3,rank.seq,col=alpha("black",0.2))
 mtext("rank", side=1, line=2,cex=0.8)
 mtext("DSI", side=2, line=1.9,cex=0.8)
 mtext("joint",side=4,line=0.5,cex=0.8,las=1)
+
+dev.off()
+
+
 ####
 link_father <- link(p_lac4, n=1000 , data=d.pred_father1,replace=
-	list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z, bpf_id=a_prt1_z, bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z), WAIC=TRUE)
+	#list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z, bpf_id=a_prt1_z, bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
+			bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,
+			bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred_father_z <- 1-link_father$p
 pred_father_g=link_father$mu
 pred_father <- (1-link_father$p)*link_father$mu
 
 link_nodad <- link(p_lac4, n=1000 , data=d.pred_nodad1, replace=
-	list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z, bpf_id=a_prt1_z, bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z), WAIC=TRUE)
+	#list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z, bpf_id=a_prt1_z, bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
+			bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,
+			bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred_nodad_z <- 1-link_nodad$p
 pred_nodad_g=link_nodad$mu
 pred_nodad <- (1-link_nodad$p)*link_nodad$mu
 
-link_nextdad <- 1-link(p_lac4, n=1000 , data=d.pred_nextdad1, WAIC=TRUE,replace=
-	list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z, bpf_id=a_prt1_z, bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z), WAIC=TRUE)
+link_nextdad <- link(p_lac4, n=1000 , data=d.pred_nextdad1, WAIC=TRUE,replace=
+	#list(ap_id=a_prt1_z , ap_dyad=a_dyad_z, am_id=a_prt1_z ,am_dyad=a_dyad_z, bpf_id=a_prt1_z, bmf_id=a_prt1_z, bpr_id=a_prt1_z, bmr_id=a_prt1_z), WAIC=TRUE)
+	list(ap_id=a_prt1_z, am_id=a_prt1_z, am_dyad=a_dyad_z,ap_dyad=a_dyad_z,bpf_id=a_prt1_z,bmf_id=a_prt1_z,
+			bpfr_id=a_prt1_z,bmfr_id=a_prt1_z,bpr_id=a_prt1_z,bmr_id=a_prt1_z,bpn_id=a_prt1_z,
+			bmn_id=a_prt1_z,bpnr_id=a_prt1_z,bmnr_id=a_prt1_z), WAIC=TRUE)
 pred_nextdad_z <- 1-link_nextdad$p
 pred_nextdad_g=link_nextdad$mu
 pred_nextdad <- (1-link_nextdad$p)*link_nextdad$mu
 
 #Plot
+pdf("p_mu_rank_posteriors_lactation.pdf", height=7,width=7)
+
 par(mfrow=c(3,1) , mar=c(c(0,0,0,0)) , oma=c(2.5,0,0,0.1))
 dens(pred_nodad_z , xlab=NA , ylab=NA , col="white"  , xaxt='n' ,  yaxt='n', zero.line = FALSE,xlim=c(0.7,1),ylim=c(0,40))
 axis(1, tck=-0.015,cex=1,labels=NA,at=seq(0.7,1,by=0.1))
@@ -731,3 +736,4 @@ legend(6.25,2, legend = c("sires of current infant","sires of next infant","othe
        col=c(col.alpha("blue", 0.5) ,col.alpha("red", 0.5), col.alpha("orange", 0.5) ) , pch=c(15,17,16),
        pt.cex=1.5 , cex=1.1, bty="n",y.intersp=1.2,x.intersp=2)
 par(mfrow=c(1,1))   
+dev.off()
